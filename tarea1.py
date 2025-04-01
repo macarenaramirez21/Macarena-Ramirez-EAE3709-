@@ -32,6 +32,7 @@ import seaborn as sns
 import numpy as np
 
 
+
 ### Pregunta 1.1 ##
 
 #Importe el dataset como un DataFrame (df) directamente desde Github (es decir, no descargue el archivo manualmente). A lo largo de la tarea este df se denominará como `df`.
@@ -56,15 +57,19 @@ df.info()
 
 df.dtypes
 
+
 #  Para describir el DataFrame df, utilizamos las funciones head(), tail(), info() y la propiedad .dtypes de Pandas. 
 
 
-#  La función head() permite visualizar las primeras 5 filas del DataFrame, lo que ayuda a tener una idea general de 
-#  Los datos y sus columnas Que en esté caso nos dice date/sorce/Country, vale decir, fechas, todo proveniente del 
+#  La función head() permite visualizar las primeras n filas del DataFrame, lo que ayuda a tener una idea general de 
+#  Los datos y las variables . Se le entrega como paramentro el numero de lineas (n) que se quiere retornar. Si no se especifica,
+#  retornará las primeras 5
+#  En esté caso vemos variables como date/source/Country, vale decir, fechas, todo proveniente del 
 #  gobierno de US y el país que se menciona
 
-#  Por otro lado, tail() muestra las últimas 5 filas, útil para revisar cómo terminan los datos o detectar 
-#  Posibles errores al final del archivo. En este caso vemos las mismas 3 columnas y vemos algunos errores después de la fila 223
+#  Por otro lado, tail() muestra las últimas n filas (si no se especifica n, retornará las últimas 5 filas). 
+#  Es útil para revisar cómo terminan los datos o detectar posibles datos faltantes al final del archivo. 
+#  En este caso vemos las mismas columnas y vemos algunos datos faltantes después de la fila 223
 
 
 #  La función info() entrega un resumen completo de la estructura del DataFrame, 
@@ -78,14 +83,14 @@ df.dtypes
 
 #  Finalmente, .dtypes muestra específicamente el tipo de dato que Pandas ha asignado a cada columna, lo cual es clave 
 #  para saber si es necesario transformar algún dato, por ejemplo, si se espera un número pero la columna está como texto.
-#  En este caso: 
-
+#  Por ejemplo, date es un objeto y nos gustaria que fuera un datetime
 ### Pregunta 1.3
 
 # La variable `source` es innecesaria debido que contiene el mismo valor para todas las observaciones. Elimine esta variable de su `df`.
 # Eliminar la columna 'source' porque no aporta información útil (valor constante)
 
-df.drop(columns='source', inplace=True)
+df = df.drop(columns='source')
+df.columns
 
 ### Pregunta 1.4
 
@@ -93,6 +98,7 @@ df.drop(columns='source', inplace=True)
 #  Convertir la columna 'date' a tipo datetime
 
 df['date'] = pd.to_datetime(df['date'])
+df.info()  # comprobar que lo cambiamos a 'datetime´
 
 ### Pregunta 1.5
 
@@ -100,6 +106,11 @@ df['date'] = pd.to_datetime(df['date'])
 ## Investigue y explique brevemente la relación **teórica** entre el `GDP (% per capita)` y cada una de las variables denominadas como "Características del país" en la introducción.
 
 #  Ejemplo: Existe una variable denominada `Coastline (coast/area ratio)`. Coastline es una medida de la cantidad de costa (acceso a mar) del país normalizada al área total del país para no beneficiar a países más grandes pero con la misma proporción de costa. A mayor "Costline" aumenta la capacidad portuaria per capita del país, más puertos facilita el comercio y podría aumentar el GDP per cápita.
+
+
+# en primer lugar, revisaremos las variables numericas (int y float)
+
+
 
 
 # Lista de variables a comparar con el GDP
@@ -129,43 +140,63 @@ for i, var in enumerate(variables):
 plt.tight_layout()
 plt.show()
 
+for var in variables:
+    sns.scatterplot(df, x= var, y = "GDP ($ per capita)")
+    sns.regplot(df, x = var, y = "GDP ($ per capita)", scatter=True)
+    plt.title(f'GDP vs {var}')
+    plt.show()
+
 ## Se explora gráficamente la relación entre el GDP ($ per capita) y varias variables
 ## características del país mediante gráficos de dispersión. Cada gráfico permite visualizar
 ## si existe algún tipo de relación lineal, no lineal o nula entre el ingreso per cápita
 ## y las distintas dimensiones estructurales del país.
 
-## Population: La dispersión muestra que países con poblaciones muy grandes tienden a tener
-## tanto GDP bajo como alto. No hay una relación clara directa, lo que sugiere que el tamaño
-## poblacional no determina por sí solo el ingreso per cápita.
+## Population: No se observa una relacion clara entre la población y el GDP lo que sugiere que el tamaño
+## poblacional no determina por sí solo el ingreso per cápita. Sin embargo, se obserba que algunos de 
+## los paises con mayor población tienen menor GDP, lo que se puede deber a tener rendimientos decrecientes
+## capital. 
+
 
 ## Area (sq. mi.): Similar a la población, el tamaño físico del país no muestra una relación
-## evidente con el GDP per cápita.
+## evidente con el GDP per cápita. Una mayor area. Una mayor area puede significar tener mas recursos, pero 
+## se necesita una mayor inversión para explotarlos.
 
 ## Pop. Density (per sq. mi.): Se observa una gran dispersión; algunos países con alta densidad
-## tienen GDP alto, pero muchos no. No parece haber una correlación fuerte.
+## tienen GDP alto, pero muchos no. No parece haber una correlación fuerte. Esto se puede deber a 
+## paises mas densos estan mas urbanizados, sin embargo la relación no es clara. 
 
 ## Coastline (coast/area ratio): Se observa que algunos países con mayor proporción de costa
-## presentan GDP per cápita elevado, lo cual coincide con la teoría del acceso al comercio marítimo.
+## presentan GDP per cápita elevado, lo cual coincide con la teoría del acceso al comercio marítimo,
+## sin embargo esta relacion es leve.
 
 ## Net migration: Algunos países con migración neta positiva tienen altos niveles de GDP per cápita.
-## Sin embargo, la relación es débil y dispersa.
+## Sin embargo, la relación es débil y dispersa. Generalmente, los paises con mayor mas desarrollados, con mayor
+## GDP, atraen mas imnigrantes y menos personas quieren dejar el pais.
 
 ## Infant mortality (per 1000 births): Existe una clara relación negativa: a mayor mortalidad infantil,
-## menor es el GDP per cápita. Esto confirma que este indicador refleja el nivel de desarrollo.
+## menor es el GDP per cápita. Esto confirma que este indicador refleja el nivel de desarrollo, ya que paises 
+## mas desarrollados tienen mayor acceso a salud, lo que disminuye la mortalidad infantil.
 
 ## Literacy (%): Se observa una tendencia positiva: países con mayor alfabetización tienden a tener
-## mayores ingresos per cápita.
+## mayores ingresos per cápita. Al igual que la salud, los paises con mayor desarrollo economico tienen 
+## mayor acceso a educación, lo que mejora la alfabetización de la población.
 
 ## Phones (per 1000): También hay una relación positiva: mayor acceso a telecomunicaciones se asocia
-## a mayores niveles de desarrollo económico.
+## a mayores niveles de desarrollo económico. Paises mas desarrollados tienen mejor infraestructura telefonica
+## (calidad de señal, coobertura, etc), lo que lleva a que tengan una mayor cantidad de telefono.
 
-## Arable (%), Crops (%), Other (%): Estas variables relacionadas con el uso del suelo muestran
-## relaciones débiles con el GDP. En general, los países agrícolas no son los de mayor ingreso per cápita.
+## Arable (%): No se observa una relación entre suelo cultivable y GDP. 
+## Crops (%): Se observa un arelacion negativa debil con el GDP 
+## Other (%): No se observa una relacion clara.
+## Estas variables relacionadas con el uso del suelo muestran relaciones débiles con el GDP. 
+## En general, los países agrícolas no son los de mayor ingreso per cápita debido a que tienen menor industrializacion,
+## lo que generalmente lleva a un mayor GDP
 
 ## Climate: La relación es difusa, pero hay cierta agrupación de países de climas moderados con GDP más alto.
 
 ## Birthrate y Deathrate: Ambas muestran relaciones negativas con el GDP per cápita, especialmente la natalidad.
-## Altas tasas de natalidad y mortalidad tienden a asociarse con menores niveles de desarrollo.
+## Altas tasas de natalidad y mortalidad tienden a asociarse con menores niveles de desarrollo, ya que estos paises
+## tienen menor acceso a salud.
 
 ## Agriculture, Industry, Service: Las variables de composición económica muestran tendencias interesantes:
 ## - A mayor peso del sector servicios, suele haber mayor GDP per cápita.
