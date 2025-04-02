@@ -140,6 +140,7 @@ for i, var in enumerate(variables):
 plt.tight_layout()
 plt.show()
 
+#graficos individuales
 for var in variables:
     sns.scatterplot(df, x= var, y = "GDP ($ per capita)")
     sns.regplot(df, x = var, y = "GDP ($ per capita)", scatter=True)
@@ -323,12 +324,13 @@ print(f"\nTotal de valores faltantes tras la imputación: {total_na}")
 ## criterio comúnmente utilizado para eliminar variables. Por lo tanto, no se eliminó ninguna columna.
 
 ## Para la imputación de valores faltantes se consideró el tipo de variable:
-## - En las variables numéricas se utilizó la **mediana**, ya que es una medida robusta ante outliers
+## - En las variables numéricas se utilizó la mediana, ya que es una medida robusta ante outliers
 ##   y distribuciones sesgadas. Esto evita que valores extremos alteren el centro de la distribución, lo cual
 ##   es especialmente importante en columnas como 'GDP ($ per capita)' o 'Infant mortality'.
-## - En las variables categóricas o tipo texto (como 'Country' o 'Region'), se utilizó el método `ffill`
+## - En las variables categóricas  (como 'Country' o 'Region'), se utilizó el método `ffill`
 ##   (forward fill), que rellena el NaN con el valor no nulo anterior. Esta técnica es adecuada cuando
-##   los valores faltantes son aislados y no estructurales.
+##   los valores faltantes son aislados y no estructurales. No fue necesario usarlo ya que las variables categoricas 
+##   no tenian datos faltantes
 
 ## Además, se calculó explícitamente el porcentaje de valores faltantes por columna para respaldar
 ## cuantitativamente la decisión de no eliminar ninguna variable.
@@ -341,14 +343,14 @@ print(f"\nTotal de valores faltantes tras la imputación: {total_na}")
 
 ## ¿Cómo distribuye el `GDP ($ per capita)` en diferentes **regiones**? Defina una forma ilustrativa de gráficar el `GDP ($ per capita)` para todas las regiones en un mismo gráfico. Interprételo.
 
-# Configurar estilo
+
 plt.figure(figsize=(12, 6))
 sns.set(style="whitegrid")
 
 # Boxplot del GDP por región
 sns.boxplot(data=df, x='Region', y='GDP ($ per capita)', palette='viridis')
 
-# Títulos y etiquetas
+
 plt.title('Distribución del GDP ($ per capita) por Región', fontsize=14)
 plt.xlabel('Región', fontsize=12)
 plt.ylabel('GDP ($ per capita)', fontsize=12)
@@ -360,10 +362,11 @@ plt.show()
 ## en distintas regiones del mundo. Este tipo de gráfico permite observar la mediana, el rango
 ## intercuartílico (IQR) y la presencia de posibles valores atípicos en cada grupo.
 
-## A partir del gráfico, se puede observar que regiones como Europa Occidental y Oceanía tienden a tener
-## los mayores niveles de GDP per cápita, con valores más concentrados y menos dispersión.
-## En contraste, regiones como África Sub-sahariana o Asia Meridional presentan medianas más bajas
-## y una mayor dispersión, lo cual puede indicar una mayor heterogeneidad económica entre los países de esas zonas.
+## A partir del gráfico, se puede observar que regiones como Europa Occidental y America del Norte tienden a tener
+## los mayores niveles de GDP per cápita. Mientras que America del Norte presenta una gran variabilidad en las obserbaciones,
+## Europa Occidental tiene una menor dispersión.
+## En contraste, regiones como África Sub-sahariana o Asia (ex. near east) presentan medianas más bajas
+## y el segundo tiene una mayor dispersión, lo cual puede indicar una mayor heterogeneidad económica entre los países de esa zona.
 
 ## Esta visualización permite comparar rápidamente el desempeño económico relativo entre regiones,
 ## identificar desigualdades y detectar posibles valores extremos dentro de cada grupo regional.
@@ -372,19 +375,25 @@ plt.show()
 
 ##  Supongamos que `GDP ($ per capita)` es su variable objetivo. Estudie la correlación de esta variable con el resto de las variables del `df`. ¿Por qué es importante analizar la correlación entre las variables?
 
-# Calcular la matriz de correlación
+# matriz de correlación
 correlaciones = df.corr(numeric_only=True)
 
 # Extraer correlación de todas las variables con 'GDP ($ per capita)' y ordenarla
 gdp_corr = correlaciones['GDP ($ per capita)'].drop('GDP ($ per capita)').sort_values(ascending=False)
 
-# Mostrar la correlación ordenada
 print("Correlación de cada variable con GDP ($ per capita):")
 print(gdp_corr)
 
-# Graficar las correlaciones con GDP
+# Graficos
 plt.figure(figsize=(10, 6))
 sns.barplot(x=gdp_corr.values, y=gdp_corr.index, palette='coolwarm')
+plt.title('Correlación de variables numéricas con GDP ($ per capita)', fontsize=14)
+plt.xlabel('Coeficiente de correlación')
+plt.ylabel('Variable')
+plt.tight_layout()
+plt.show()
+
+sns.barplot(x=abs(gdp_corr.values), y = gdp_corr.index, order = gdp_corr.abs().sort_values(ascending = False).index)
 plt.title('Correlación de variables numéricas con GDP ($ per capita)', fontsize=14)
 plt.xlabel('Coeficiente de correlación')
 plt.ylabel('Variable')
@@ -418,11 +427,10 @@ plt.show()
 ##  Realice tres _scatterplots_ (uno por variable) de las tres variables con la mayor correlación con la variable objetivo.
 ##  Utilizando los parámetros de la función con la que hizo los _scatterplots_, coloque un título a cada gráfico y agregue colores a los _data points_ del _scatterplot_- Use colores diferentes por cada gráfico.
 
-# Variables más correlacionadas con GDP (puedes ajustar si cambian)
+# Variables más correlacionadas con GDP (correlación positiva)
 top_vars = ['Literacy (%)', 'Phones (per 1000)', 'Service']
 colors = ['#1f77b4', '#2ca02c', '#d62728']  # Azul, verde y rojo
 
-# Crear figura con 3 subgráficos
 plt.figure(figsize=(18, 5))
 
 for i, (var, color) in enumerate(zip(top_vars, colors)):
@@ -435,12 +443,43 @@ for i, (var, color) in enumerate(zip(top_vars, colors)):
 plt.tight_layout()
 plt.show()
 
-## Se graficaron las tres variables con mayor correlación positiva con el GDP ($ per capita):
+## Graficos de las tres variables con mayor correlación positiva con el GDP ($ per capita):
 ## 'Literacy (%)', 'Phones (per 1000)' y 'Service'. Los gráficos de dispersión permiten observar
 ## la relación individual entre cada variable predictora y la variable objetivo.
 
 ## En los tres casos se observa una tendencia creciente: a medida que aumenta el nivel de alfabetización,
 ## el acceso a teléfonos o la participación del sector servicios, también tiende a aumentar el ingreso per cápita.
+
+# variables mas correlacionadas con GDP (correlación negativa)
+top_vars = ['Birthrate', 'Infant mortality (per 1000 births)', 'Agriculture']
+colors = ['#1f77b4', '#2ca02c', '#d62728']  # Azul, verde y rojo
+
+plt.figure(figsize=(18, 5))
+
+for i, (var, color) in enumerate(zip(top_vars, colors)):
+    plt.subplot(1, 3, i + 1)
+    sns.scatterplot(data=df, x=var, y='GDP ($ per capita)', color=color, alpha=0.7)
+    plt.title(f'GDP vs {var}', fontsize=13)
+    plt.xlabel(var)
+    plt.ylabel('GDP ($ per capita)')
+
+## Graficos de las tres variables con mayor correlación negativa con el GDP ($ per capita):
+## Birthrate', 'Infant mortality (per 1000 births)' y 'Agriculture'. 
+
+top_vars = ['Infant mortality (per 1000 births)','Birthrate', 'Phones (per 1000)']
+colors = ['#1f77b4', '#2ca02c', '#d62728']  # Azul, verde y rojo
+
+plt.figure(figsize=(18, 5))
+
+for i, (var, color) in enumerate(zip(top_vars, colors)):
+    plt.subplot(1, 3, i + 1)
+    sns.scatterplot(data=df, x=var, y='GDP ($ per capita)', color=color, alpha=0.7)
+    plt.title(f'GDP vs {var}', fontsize=13)
+    plt.xlabel(var)
+    plt.ylabel('GDP ($ per capita)')
+    
+## Por ultimo, analizando los valores absolutos de las correlaciones, tenemos los graficos de
+## 'Infant mortality (per 1000 births)', 'Birthrate'y 'Phones (per 1000)' en orden ascendente.
 
 ## Este tipo de visualización es útil para identificar relaciones no lineales, posibles outliers
 ## y para anticipar el tipo de asociación que se podría modelar. Además, los colores diferenciados
@@ -486,6 +525,14 @@ print(gdp_total_corr)
 # Graficar
 plt.figure(figsize=(10, 6))
 sns.barplot(x=gdp_total_corr.values, y=gdp_total_corr.index, palette='mako')
+plt.title('Correlación de variables numéricas con GDP total (GDP (%))')
+plt.xlabel('Coeficiente de correlación')
+plt.ylabel('Variable')
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=abs(gdp_total_corr.values), y=gdp_total_corr.index, palette='mako', order= gdp_total_corr.abs().sort_values(ascending = False).index)
 plt.title('Correlación de variables numéricas con GDP total (GDP (%))')
 plt.xlabel('Coeficiente de correlación')
 plt.ylabel('Variable')
