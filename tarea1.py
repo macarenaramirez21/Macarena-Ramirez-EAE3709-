@@ -30,6 +30,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import sqlite3
 
 
 
@@ -99,6 +100,8 @@ df.columns
 
 df['date'] = pd.to_datetime(df['date'])
 df.info()  # comprobar que lo cambiamos a 'datetime´
+
+df.info()
 
 ### Pregunta 1.5
 
@@ -505,7 +508,6 @@ df[['Country', 'GDP ($ per capita)', 'Population', 'GDP (%)']].head()
 ## (por volumen total) como economías con alto desarrollo individual (per cápita).
 
 ### Pregunta 1.13
-
 ##  Repita el análisis de correlaciones para `GDP ($)` excluyendo `GDP ($ per capita)` del análisis. ¿Cambian las variables que más correlacionan? Justifique.
 
 
@@ -533,7 +535,7 @@ plt.show()
 
 plt.figure(figsize=(10, 6))
 sns.barplot(x=abs(gdp_total_corr.values), y=gdp_total_corr.index, palette='mako', order= gdp_total_corr.abs().sort_values(ascending = False).index)
-plt.title('Correlación de variables numéricas con GDP total (GDP (%))')
+plt.title('Correlación de variables numéricas con GDP total (GDP (%)) en valor absoluto')
 plt.xlabel('Coeficiente de correlación')
 plt.ylabel('Variable')
 plt.tight_layout()
@@ -559,7 +561,6 @@ plt.show()
 ### Pregunta 1.14
 
 ##  Detecte las observaciones outliers de las tres variables seleccionadas en la pregunta anterior. Además, impute estas observaciones si usted lo considera necesario. Justifique su decisión.
-
 
 # Usamos las 3 variables con mayor correlación con GDP (%)
 # (Reemplazamos estos nombres si el análisis previo dio otros)
@@ -602,7 +603,7 @@ for var in top_corr_vars:
 ## (por ejemplo, China, India, Rusia), que naturalmente se alejan del resto.
 
 ## En lugar de eliminar estas observaciones (lo que podría eliminar información valiosa),
-## se optó por **imputar solo aquellos outliers que estuvieran muy alejados** del resto del conjunto.
+## se optó por imputar solo aquellos outliers que estuvieran muy alejados del resto del conjunto.
 ## Para imputar, se reemplazaron por la mediana de su respectiva variable, lo cual mantiene
 ## la estructura general del dataset sin introducir nuevos extremos ni alterar la distribución central.
 
@@ -625,7 +626,7 @@ corr_df = pd.DataFrame({
     'corr_total': corr_total
 }).dropna()
 
-# Eliminar las variables objetivo
+
 corr_df = corr_df.drop(['GDP ($ per capita)', 'GDP (%)'], errors='ignore')
 
 # Calcular correlaciones absolutas y variación porcentual
@@ -633,7 +634,7 @@ corr_df['abs_per_capita'] = corr_df['corr_per_capita'].abs()
 corr_df['abs_total'] = corr_df['corr_total'].abs()
 corr_df['variacion_%'] = ((corr_df['abs_total'] - corr_df['abs_per_capita']) / corr_df['abs_per_capita']) * 100
 
-# Ordenar de mayor a menor variación porcentual
+# Ordenar
 corr_df_sorted = corr_df.sort_values(by='variacion_%', ascending=False)
 
 # Mostrar resultado
@@ -662,8 +663,8 @@ corr_df_sorted
 ##  Del resultado anterior, ¿qué caracerística del país tuvo una mayor diferencia absoluta el medir su correlación versus `GDP ($)` en vez de `GDP ($ per capita)`'. Interprete.
 
 
-## La variable que presentó la **mayor diferencia absoluta** en su correlación al cambiar la variable objetivo
-## de 'GDP ($ per capita)' a 'GDP ($)' fue **'Arable (%)'**, con una variación positiva de más de **500%**.
+## La variable que presentó la mayor diferencia absoluta en su correlación al cambiar la variable objetivo
+## de 'GDP ($ per capita)' a 'GDP ($)' fue 'Arable (%)', con una variación positiva de más de 500%.
 
 ## Esto significa que la proporción de tierra cultivable en un país está **mucho más relacionada con el GDP total**
 ## que con el ingreso individual promedio. En otras palabras, los países con mucha tierra arable pueden tener
@@ -671,7 +672,7 @@ corr_df_sorted
 ## de vida per cápita**.
 
 ## Esta diferencia refleja una idea clave: algunas variables estructurales (como el uso del suelo) pueden
-## tener un gran impacto en la **producción total** del país, sin necesariamente traducirse en una alta
+## tener un gran impacto en la producción total del país, sin necesariamente traducirse en una alta
 ## productividad o desarrollo individual. Por eso, es fundamental definir con claridad la variable objetivo
 ## antes de interpretar correlaciones o construir modelos.
 
@@ -727,24 +728,20 @@ country_name_mapping = {
     "Yemen, Rep.": "Yemen"
 }
 
-# Renombrar columnas relevantes en df_gini
+
 df_gini.rename(columns={'Country Name': 'Country_gini', 'Value': 'Gini'}, inplace=True)
 
-# Convertir la columna Year a tipo datetime (solo año)
 df_gini['Year'] = pd.to_datetime(df_gini['Year'], format='%Y')
 df_gini['Year'] = pd.to_datetime(df_gini['Year'].dt.year, format='%Y')
 
-# Aplicar el mapeo de nombres de países para alinear con df
 df_gini['Country_gini'] = df_gini['Country_gini'].replace(country_name_mapping)
 
-# Limpiar espacios al final de los nombres de país en df
 df['Country'] = df['Country'].str.strip()
 
-# Convertir la columna Year en df a formato datetime desde la columna date
+
 df['Year'] = pd.to_datetime(df['date'], errors='coerce').dt.year
 df['Year'] = pd.to_datetime(df['Year'], format='%Y')
 
-# Realizar INNER JOIN entre df y df_gini
 df_merged = pd.merge(
     df,
     df_gini,
@@ -753,10 +750,33 @@ df_merged = pd.merge(
     how='inner'
 )
 
-# Verificar las primeras filas del resultado
 df_merged.head()
 
+###############################################################################
+## usando sql
 
+conn = sqlite3.connect(":memory:")
+cursor = conn.cursor()
+
+df.to_sql("df", conn, index=False, if_exists="replace")
+df_gini.to_sql("df_gini", conn, index=False, if_exists="replace")
+
+#
+query = """
+    SELECT 
+    df.*, df_gini.Gini
+FROM 
+    df
+INNER JOIN 
+    df_gini
+ON 
+    df.Country = df_gini.Country_gini
+AND 
+    df.Year = df_gini.Year;
+"""
+df_merged_1 = pd.read_sql(query, conn)
+        
+#
 ### Pregunta 2.1
 
 ##  Repita el ejercicio de la obtención de un ranking para las correlaciones absolutas, tal como lo hizo para el GDP per cápita. ¿Cuáles son las relaciones que más le sorprenden? ¿Cuáles son las que están en línea con lo que esperaba? Justifique para ambos casos.
