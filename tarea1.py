@@ -580,6 +580,7 @@ for var in top_corr_vars:
         df.loc[outliers, var] = mediana
 
 
+
 ## Se utilizaron los tres predictores más correlacionados con el GDP total ('GDP (%)'):
 ## 'Population', 'Area (sq. mi.)' y 'Phones (per 1000)', y se aplicó el método del rango intercuartílico (IQR)
 ## para detectar valores extremos (outliers) en cada una de ellas.
