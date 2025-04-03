@@ -97,7 +97,6 @@ df.columns
 df['date'] = pd.to_datetime(df['date'])
 df.info()  # comprobar que lo cambiamos a 'datetime´
 
-df.info()
 
 ### Pregunta 1.5
 
@@ -572,8 +571,8 @@ for var in top_corr_vars:
     print(f"Outliers detectados: {outliers.sum()} observaciones")
     print("-" * 40)
 
-# Opcional: imputación solo si hay pocos y están muy alejados
-# Por ahora, se reemplazan por la mediana si es necesario
+
+# se reemplazan por la mediana 
 for var in top_corr_vars:
     outliers = detectar_outliers_iqr(df[var])
     if outliers.sum() > 0:
@@ -1021,8 +1020,6 @@ paises = ['United Kingdom', 'Canada', 'Germany', 'France', 'United States',
           'Brazil', 'China', 'Japan', 'India']
 df_pct_plot = df_pct[df_pct['Country'].isin(paises)]
 
-# Graficar la variación porcentual
-import matplotlib.pyplot as plt
 
 plt.figure(figsize=(12, 6))
 for pais in paises:
@@ -1078,10 +1075,6 @@ plt.show()
 # grafique en un panel _1x2_ la desviación del cambio porcentual respecto al promedio entre 2007 y 2010 en lado izquierdo, y entre 2017 y 2020 en el lado derecho (Hint: Hay comandos que facilitan esta labor. Puede intentar con `fig, axes = plt.subplots(1, 2, figsize=(18, 6), sharey=True)`, por ejemplo).
 # ¿Existe algún país en particular que mostró mayores desviaciones atípicas de emisión de CO2 durante el periodo de la crisis sub-prime? ¿Cómo es el comportamiento de las desviaciones atípicas de CO2 de este país durante la crisis del Covid-19?
 
-
-
-
-# Crear copia del DataFrame con el cambio porcentual anual
 df_desv = df_pct.copy()
 
 # Calcular el promedio del cambio porcentual por país
@@ -1093,12 +1086,11 @@ df_desv['desvio_pct'] = df_desv.apply(
     axis=1
 )
 
-# Filtrar países solicitados
 paises_8 = ['United Kingdom', 'Canada', 'Germany', 'France',
             'United States', 'Japan', 'Italy', 'Spain']
 df_desv_filtrado = df_desv[df_desv['Country'].isin(paises_8)]
 
-# Crear gráfico en panel 1x2
+# Crear gráfico
 
 fig, axes = plt.subplots(1, 2, figsize=(18, 6), sharey=True)
 
@@ -1127,7 +1119,6 @@ axes[1].set_title("Desvío cambio % - COVID-19 (2017-2020)")
 axes[1].set_xlabel("Año")
 axes[1].grid(True)
 
-# Leyenda compartida
 fig.legend(title="Países", bbox_to_anchor=(1.05, 0.5), loc='center left')
 plt.tight_layout()
 plt.show()
