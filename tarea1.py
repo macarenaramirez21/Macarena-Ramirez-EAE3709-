@@ -7,7 +7,6 @@ Created on Sat Mar 29 10:56:27 2025
 
 """
 
-
 #Para esta tarea se utilizará como principal fuente de información un dataset con una serie de características económicas, demográficas y de desarrollo humano de distintos países a la fecha de 2007 (corte transversal). El dataset está disponible en el siguiente [Github](https://raw.githubusercontent.com/lfgarcia-1/EAE3709-1-2025/refs/heads/main/economic_dataset.csv).<br>
 
 #Descripción del dataset:
@@ -38,11 +37,8 @@ import sqlite3
 
 #Importe el dataset como un DataFrame (df) directamente desde Github (es decir, no descargue el archivo manualmente). A lo largo de la tarea este df se denominará como `df`.
 
-
-# URL del archivo CSV
 url = "https://raw.githubusercontent.com/lfgarcia-1/EAE3709-1-2025/refs/heads/main/economic_dataset.csv"
 
-# Cargar el dataset directamente desde la URL
 df = pd.read_csv(url)
 
 
@@ -109,12 +105,6 @@ df.info()
 ## Investigue y explique brevemente la relación **teórica** entre el `GDP (% per capita)` y cada una de las variables denominadas como "Características del país" en la introducción.
 
 #  Ejemplo: Existe una variable denominada `Coastline (coast/area ratio)`. Coastline es una medida de la cantidad de costa (acceso a mar) del país normalizada al área total del país para no beneficiar a países más grandes pero con la misma proporción de costa. A mayor "Costline" aumenta la capacidad portuaria per capita del país, más puertos facilita el comercio y podría aumentar el GDP per cápita.
-
-
-# en primer lugar, revisaremos las variables numericas (int y float)
-
-
-
 
 # Lista de variables a comparar con el GDP
 variables = [
@@ -230,7 +220,7 @@ df.describe()
 ## ¿Por qué es importante analizar las distribuciones de las variables a utilizar en su modelo? 
 ##  Ejemplifique su respuesta con al menos una de las variables del df`.
 
-# Ajustar tamaño general
+
 plt.figure(figsize=(15, 4))
 
 # Variables relevantes elegidas
@@ -255,7 +245,7 @@ plt.show()
 ##  de los modelos si no se trata adecuadamente (por ejemplo, mediante transformación logarítmica o normalización). 
 ##  Conocer estas distribuciones permite elegir técnicas estadísticas adecuadas y evitar interpretaciones erróneas.
 
-# Crear figura con 2 subplots lado a lado
+# Crear figura con 2 subplots 
 plt.figure(figsize=(12, 5))
 
 # Gráfico original
@@ -763,19 +753,19 @@ df_gini.to_sql("df_gini", conn, index=False, if_exists="replace")
 
 #
 query = """
-    SELECT 
-    df.*, df_gini.Gini
-FROM 
-    df
-INNER JOIN 
-    df_gini
-ON 
-    df.Country = df_gini.Country_gini
-AND 
-    df.Year = df_gini.Year;
-"""
+        SELECT 
+        df.*, df_gini.Gini
+    FROM 
+        df
+    INNER JOIN 
+        df_gini
+    ON 
+        df.Country = df_gini.Country_gini
+    AND 
+        df.Year = df_gini.Year;
+    """
 df_merged_1 = pd.read_sql(query, conn)
-        
+    
 #
 ### Pregunta 2.1
 
@@ -788,7 +778,6 @@ correlaciones_gini = df_merged.corr(numeric_only=True)['Gini'].drop('Gini')
 ranking_corr_gini = correlaciones_gini.abs().sort_values(ascending=False).to_frame(name='abs_corr_with_gini')
 ranking_corr_gini['signed_corr'] = correlaciones_gini
 
-# Mostrar el ranking
 ranking_corr_gini
 
 ## Se calcularon las correlaciones entre la variable 'Gini' (desigualdad económica) y el resto de las variables numéricas.
@@ -813,9 +802,6 @@ ranking_corr_gini
 
 ## Este análisis permite identificar posibles predictores de desigualdad y explorar cómo factores económicos,
 ## demográficos y geográficos se relacionan con la distribución del ingreso en distintos países.
-
-
-
 
 
 ## Finalmente, agregaremos una tercera base de datos al análisis, también disponible en [Github](https://raw.githubusercontent.com/datasets/co2-fossil-by-nation/refs/heads/main/data/fossil-fuel-co2-emissions-by-nation.csv) con su repectivo
@@ -882,16 +868,12 @@ country_name_mapping_co2 = {
     "China (Mainland)": "China",
 }
 
-# Convertir la columna 'Year' a tipo datetime
 df_co2['Year'] = pd.to_datetime(df_co2['Year'], format='%Y')
 
-# Estandarizar los nombres de país: primera letra mayúscula, resto minúsculas
 df_co2['Country'] = df_co2['Country'].str.title()
 
-# Reemplazar nombres de país con el mapping entregado
 df_co2['Country'] = df_co2['Country'].replace(country_name_mapping_co2)
 
-# Verificar cantidad de valores nulos por columna
 df_co2.isna().sum()
 
 ## Se cargó la base de emisiones de CO₂ como df_co2.
